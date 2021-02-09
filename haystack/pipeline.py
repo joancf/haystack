@@ -26,10 +26,16 @@ class Pipeline:
 
     def __init__(self, pipeline_type: str = "Query"):
         self.graph = DiGraph()
-        self.root_node_id = "Root"
-        self.graph.add_node("Root", component=RootNode())
-        self.components: dict = {}
+        if pipeline_type == "Query":
+            self.root_node_id = "Query"
+            self.graph.add_node("Query", component=RootNode())
+        elif pipeline_type == "Indexing":
+            self.root_node_id = "File"
+            self.graph.add_node("File", component=RootNode())
+        else:
+            raise Exception(f"pipeline_type '{pipeline_type}' is not valid. Supported types are 'Query' & 'Indexing'.")
         self.pipeline_type = pipeline_type
+        self.components: dict = {}
 
     def add_node(self, component, name: str, inputs: List[str]):
         """
@@ -47,10 +53,6 @@ class Pipeline:
                        must be specified explicitly as "QueryClassifier.output_2".
         """
         self.graph.add_node(name, component=component)
-
-        if len(self.graph.nodes) == 2:  # first node added; connect with Root
-            self.graph.add_edge("Root", name, label="output_1")
-            return
 
         for i in inputs:
             if "." in i:
